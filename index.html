@@ -2,112 +2,144 @@
 <html lang="hi">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>BizHisab Fixed - Smart View</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>BizHisab Stable</title>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <style>
         :root { --primary: #4285F4; --success: #34A853; --bg: #f1f5f9; }
-        body { font-family: 'Segoe UI', sans-serif; background: var(--bg); margin: 0; padding: 10px; height: 100vh; display: flex; flex-direction: column; overflow: hidden; }
         
-        /* ऊपर का फिक्स्ड हिस्सा */
-        .header-section { flex-shrink: 0; }
+        /* पूरे पेज को फिक्स करना ताकि वह भागे नहीं */
+        html, body { 
+            height: 100%; 
+            margin: 0; 
+            padding: 0; 
+            overflow: hidden; /* बाहरी स्क्रॉल बंद */
+            background: var(--bg);
+            font-family: 'Segoe UI', sans-serif;
+        }
+
+        .main-container {
+            display: flex;
+            flex-direction: column;
+            height: 100vh;
+        }
+
+        /* ऊपर का हिस्सा (Fixed) */
+        .top-section {
+            flex-shrink: 0;
+            padding: 10px;
+            background: var(--bg);
+            z-index: 10;
+        }
+
+        .card { background: white; padding: 12px; border-radius: 12px; box-shadow: 0 2px 5px rgba(0,0,0,0.05); margin-bottom: 8px; }
         
-        .card { background: white; padding: 12px; border-radius: 12px; box-shadow: 0 2px 8px rgba(0,0,0,0.05); margin-bottom: 10px; }
-        
-        .summary-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-bottom: 10px; }
+        .summary-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
         .summary-card { padding: 10px; border-radius: 10px; text-align: center; color: white; }
         .month-card { background: #4285F4; }
         .year-card { background: #34A853; }
         .val { font-size: 1.1rem; font-weight: bold; }
 
-        .charts-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
-        .chart-box { text-align: center; height: 120px; }
-
-        input, button { width: 100%; padding: 10px; margin: 5px 0; border: 1px solid #ddd; border-radius: 8px; font-size: 15px; box-sizing: border-box; }
-        button { background: var(--primary); color: white; border: none; font-weight: bold; }
-
-        /* हिस्ट्री वाला हिस्सा जो स्क्रॉल होगा */
-        .history-section { flex-grow: 1; overflow-y: auto; background: white; border-radius: 12px 12px 0 0; padding: 10px; border-top: 2px solid #eee; }
+        .charts-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; height: 130px; }
         
-        .history-table { width: 100%; border-collapse: collapse; font-size: 13px; }
-        .history-table td { padding: 10px 5px; border-bottom: 1px solid #f8f9fa; }
-        .btn-act { background: none; color: #4285F4; border: none; padding: 0; width: auto; font-size: 12px; margin-left: 10px; cursor: pointer; }
-        .btn-del { color: #EA4335; }
+        /* इनपुट बॉक्स */
+        .input-group { display: flex; gap: 5px; margin-bottom: 5px; }
+        input { flex: 1; padding: 10px; border: 1px solid #ddd; border-radius: 8px; font-size: 14px; outline: none; }
+        button { width: 100%; padding: 12px; background: var(--primary); color: white; border: none; border-radius: 8px; font-weight: bold; cursor: pointer; }
 
-        h3 { margin: 0 0 5px 0; font-size: 0.9rem; color: #444; }
-        .export-link { display: block; text-align: center; font-size: 12px; color: #666; text-decoration: none; margin-bottom: 5px; }
+        /* हिस्ट्री सेक्शन जो सिर्फ अपने अंदर स्क्रॉल होगा */
+        .history-section {
+            flex-grow: 1;
+            overflow-y: auto;
+            -webkit-overflow-scrolling: touch; /* स्मूथ मोबाइल स्क्रॉल */
+            background: white;
+            padding: 15px;
+            border-radius: 20px 20px 0 0;
+            box-shadow: 0 -5px 15px rgba(0,0,0,0.05);
+        }
+
+        .history-table { width: 100%; border-collapse: collapse; }
+        .history-table td { padding: 12px 5px; border-bottom: 1px solid #f1f5f9; font-size: 13px; }
+        .btn-edit { color: var(--primary); background: none; border: none; font-size: 12px; margin-left: 10px; }
+        .btn-del { color: #EA4335; background: none; border: none; font-size: 12px; }
     </style>
 </head>
 <body>
 
-    <div class="header-section">
+<div class="main-container">
+    <div class="top-section">
         <div class="summary-grid">
             <div class="summary-card month-card">
-                <div id="mName" style="font-size: 0.65rem; opacity: 0.8;">महीना</div>
+                <div id="mName" style="font-size: 0.7rem;">महीना</div>
                 <div class="val" id="monthTotal">₹0</div>
             </div>
             <div class="summary-card year-card">
-                <div id="yName" style="font-size: 0.65rem; opacity: 0.8;">साल</div>
+                <div id="yName" style="font-size: 0.7rem;">साल</div>
                 <div class="val" id="yearTotal">₹0</div>
             </div>
         </div>
 
-        <div class="card charts-grid">
-            <div class="chart-box"><canvas id="monthChart"></canvas></div>
-            <div class="chart-box"><canvas id="yearChart"></canvas></div>
+        <div class="card charts-grid" style="margin-top: 10px;">
+            <div style="height: 100%;"><canvas id="monthChart"></canvas></div>
+            <div style="height: 100%;"><canvas id="yearChart"></canvas></div>
         </div>
 
         <div class="card">
-            <h3 id="formTitle">💰 एंट्री करें</h3>
-            <div style="display: flex; gap: 5px;">
-                <input type="text" id="desc" placeholder="विवरण" style="flex: 2;">
-                <input type="number" id="amt" placeholder="रुपये" style="flex: 1;">
+            <div class="input-group">
+                <input type="text" id="desc" placeholder="खर्चा (उदा. पेट्रोल)">
+                <input type="number" id="amt" placeholder="₹">
             </div>
-            <div style="display: flex; gap: 5px; align-items: center;">
-                <input type="text" id="cat" placeholder="कैटेगरी" list="cat-list" style="flex: 2;">
-                <button onclick="saveData()" id="saveBtn" style="flex: 1; margin: 5px 0;">सेव</button>
+            <div class="input-group">
+                <input type="text" id="cat" placeholder="कैटेगरी" list="cat-list">
+                <button onclick="saveData()" id="saveBtn" style="flex: 0.5;">सेव</button>
             </div>
             <datalist id="cat-list"></datalist>
         </div>
     </div>
 
-    <div class="history-section">
-        <div style="display: flex; justify-content: space-between; align-items: center;">
-            <h3 style="margin: 0;">📜 हिस्ट्री</h3>
-            <a href="#" class="export-link" onclick="exportToCSV()">Excel Export</a>
+    <div class="history-section" id="scrollArea">
+        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:10px;">
+            <h3 style="margin:0; font-size:1rem; color:#333;">📜 हिस्ट्री</h3>
+            <span onclick="exportToCSV()" style="font-size:12px; color:var(--primary); cursor:pointer;">Excel Export</span>
         </div>
         <table class="history-table">
             <tbody id="tableBody"></tbody>
         </table>
     </div>
+</div>
 
 <script>
-    let db = JSON.parse(localStorage.getItem('biz_fixed_v7')) || [];
+    let db = JSON.parse(localStorage.getItem('biz_stable_v8')) || [];
     let mChart, yChart;
     let editIdx = -1;
 
-    window.onload = () => { setupCharts(); updateDisplay(); };
+    // चार्ट को सही से लोड करना
+    window.onload = () => {
+        setupCharts();
+        updateDisplay();
+        // ऑटो-स्क्रॉल रोकने के लिए फोकस हटाना
+        document.activeElement.blur();
+    };
 
     function setupCharts() {
-        const commonOptions = { plugins: { legend: { display: false } }, maintainAspectRatio: false };
-        mChart = new Chart(document.getElementById('monthChart'), { type: 'pie', data: { labels: [], datasets: [{ data: [], backgroundColor: ['#4285F4', '#34A853', '#FBBC05', '#EA4335', '#8E44AD'] }] }, options: commonOptions });
-        yChart = new Chart(document.getElementById('yearChart'), { type: 'pie', data: { labels: [], datasets: [{ data: [], backgroundColor: ['#4285F4', '#34A853', '#FBBC05', '#EA4335', '#8E44AD'] }] }, options: commonOptions });
+        const options = { plugins: { legend: { display: false } }, maintainAspectRatio: false };
+        mChart = new Chart(document.getElementById('monthChart'), { type: 'doughnut', data: { labels: [], datasets: [{ data: [], backgroundColor: ['#4285F4', '#34A853', '#FBBC05', '#EA4335', '#8E44AD'] }] }, options });
+        yChart = new Chart(document.getElementById('yearChart'), { type: 'doughnut', data: { labels: [], datasets: [{ data: [], backgroundColor: ['#4285F4', '#34A853', '#FBBC05', '#EA4335', '#8E44AD'] }] }, options });
     }
 
     function saveData() {
         const desc = document.getElementById('desc').value;
         const amt = parseFloat(document.getElementById('amt').value);
         const cat = document.getElementById('cat').value || "Other";
+        if(!desc || isNaN(amt)) return;
+
         const now = new Date();
-
-        if(!desc || isNaN(amt)) return alert("Data fill karein!");
-
         const entry = { date: now.toLocaleDateString('en-IN'), month: now.getMonth(), year: now.getFullYear(), desc, amt, cat };
 
         if(editIdx === -1) db.push(entry);
         else { db[editIdx] = entry; editIdx = -1; document.getElementById('saveBtn').innerText = "सेव"; }
         
-        localStorage.setItem('biz_fixed_v7', JSON.stringify(db));
+        localStorage.setItem('biz_stable_v8', JSON.stringify(db));
         document.getElementById('desc').value = '';
         document.getElementById('amt').value = '';
         updateDisplay();
@@ -122,10 +154,10 @@
         db.slice().reverse().forEach((item, index) => {
             const realIdx = (db.length - 1) - index;
             tbody.innerHTML += `<tr>
-                <td><b>${item.desc}</b><br><small>${item.date} | ${item.cat}</small></td>
+                <td><b>${item.desc}</b><br><small style="color:#888">${item.date} | ${item.cat}</small></td>
                 <td style="text-align:right">₹${item.amt}<br>
-                    <button class="btn-act" onclick="edit(${realIdx})">Edit</button>
-                    <button class="btn-act btn-del" onclick="del(${realIdx})">X</button>
+                    <button class="btn-edit" onclick="edit(${realIdx})">Edit</button>
+                    <button class="btn-del" onclick="del(${realIdx})">X</button>
                 </td>
             </tr>`;
 
@@ -139,11 +171,11 @@
             }
         });
 
+        document.getElementById('monthTotal').innerText = `₹${mTotal}`;
+        document.getElementById('yearTotal').innerText = `₹${yTotal}`;
         const months = ["जनवरी", "फरवरी", "मार्च", "अप्रैल", "मई", "जून", "जुलाई", "अगस्त", "सितंबर", "अक्टूबर", "नवंबर", "दिसंबर"];
         document.getElementById('mName').innerText = months[now.getMonth()];
         document.getElementById('yName').innerText = now.getFullYear();
-        document.getElementById('monthTotal').innerText = `₹${mTotal}`;
-        document.getElementById('yearTotal').innerText = `₹${yTotal}`;
 
         mChart.data.labels = Object.keys(mData);
         mChart.data.datasets[0].data = Object.values(mData);
@@ -161,10 +193,12 @@
         document.getElementById('cat').value = item.cat;
         editIdx = idx;
         document.getElementById('saveBtn').innerText = "Update";
+        // ऊपर की तरफ फोकस ले जाना
+        window.scrollTo(0,0);
     }
 
     function del(idx) {
-        if(confirm("Delete entry?")) { db.splice(idx, 1); localStorage.setItem('biz_fixed_v7', JSON.stringify(db)); updateDisplay(); }
+        if(confirm("Delete?")) { db.splice(idx, 1); localStorage.setItem('biz_stable_v8', JSON.stringify(db)); updateDisplay(); }
     }
 
     function exportToCSV() {
@@ -173,7 +207,7 @@
         const blob = new Blob([csv], { type: 'text/csv' });
         const a = document.createElement('a');
         a.href = URL.createObjectURL(blob);
-        a.download = 'Hisab.csv';
+        a.download = 'Hisab_Backup.csv';
         a.click();
     }
 </script>
