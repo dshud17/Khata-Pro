@@ -6,26 +6,21 @@
     <title>Khata-Pro</title>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <style>
-        :root { --primary: #4285F4; --success: #34A853; --bg: #f1f5f9; }
+        :root { --primary: #4285F4; --success: #34A853; --bg: #f1f5f9; --red: #EA4335; }
         
-        /* बॉडी को पूरी तरह लॉक करना */
         html, body { 
             position: fixed; 
-            width: 100%; 
-            height: 100%; 
-            margin: 0; 
-            padding: 0; 
+            width: 100%; height: 100%; 
+            margin: 0; padding: 0; 
             overflow: hidden; 
             background: var(--bg);
             font-family: 'Segoe UI', sans-serif;
         }
 
-        /* ऊपर का फिक्स्ड एरिया */
         .top-fixed-area {
             position: absolute;
-            top: 0;
-            width: 100%;
-            height: 410px; /* फिक्स्ड हाइट */
+            top: 0; width: 100%;
+            height: 430px;
             padding: 10px;
             box-sizing: border-box;
             background: var(--bg);
@@ -33,12 +28,8 @@
         }
 
         .app-title {
-            text-align: center;
-            font-size: 1.2rem;
-            font-weight: bold;
-            color: var(--primary);
-            margin-bottom: 8px;
-            letter-spacing: 1px;
+            text-align: center; font-size: 1.2rem; font-weight: bold;
+            color: var(--primary); margin-bottom: 5px; letter-spacing: 1px;
         }
 
         .card { background: white; padding: 10px; border-radius: 12px; box-shadow: 0 2px 5px rgba(0,0,0,0.05); margin-bottom: 8px; }
@@ -49,31 +40,25 @@
         .year-card { background: linear-gradient(135deg, #34A853, #2d8a45); }
         .val { font-size: 1.1rem; font-weight: bold; }
 
-        .charts-container { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; height: 120px; }
+        .charts-container { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; height: 110px; }
 
         .input-row { display: flex; gap: 5px; margin-bottom: 5px; }
         input { flex: 1; padding: 10px; border: 1px solid #ddd; border-radius: 8px; font-size: 14px; outline: none; }
-        .save-btn { width: 100%; padding: 12px; background: var(--primary); color: white; border: none; border-radius: 8px; font-weight: bold; }
+        .save-btn { flex: 1; padding: 12px; background: var(--primary); color: white; border: none; border-radius: 8px; font-weight: bold; }
+        .rem-btn { flex: 1; padding: 12px; background: var(--red); color: white; border: none; border-radius: 8px; font-weight: bold; font-size: 12px; }
 
-        /* नीचे का स्क्रॉल होने वाला हिस्सा */
         .history-scroll-area {
             position: absolute;
-            top: 410px; /* जहाँ ऊपर का हिस्सा खत्म होता है */
-            bottom: 0;
-            width: 100%;
-            overflow-y: auto;
-            -webkit-overflow-scrolling: touch;
-            background: white;
-            padding: 15px;
-            box-sizing: border-box;
-            border-radius: 20px 20px 0 0;
-            box-shadow: 0 -5px 15px rgba(0,0,0,0.05);
+            top: 430px; bottom: 0; width: 100%;
+            overflow-y: auto; -webkit-overflow-scrolling: touch;
+            background: white; padding: 15px; box-sizing: border-box;
+            border-radius: 20px 20px 0 0; box-shadow: 0 -5px 15px rgba(0,0,0,0.05);
         }
 
         .history-table { width: 100%; border-collapse: collapse; }
         .history-table td { padding: 12px 5px; border-bottom: 1px solid #f1f5f9; font-size: 13px; }
         .btn-act { color: var(--primary); background: none; border: none; font-size: 11px; font-weight: bold; margin-left: 10px; }
-        .btn-del { color: #EA4335; }
+        .btn-del { color: var(--red); }
     </style>
 </head>
 <body>
@@ -83,28 +68,32 @@
     
     <div class="summary-grid">
         <div class="summary-card month-card">
-            <div id="mName" style="font-size: 0.6rem; text-transform: uppercase;">महीना</div>
+            <div id="monthLabel" style="font-size: 0.6rem;">MONTH</div>
             <div class="val" id="monthTotal">₹0</div>
         </div>
         <div class="summary-card year-card">
-            <div id="yName" style="font-size: 0.6rem; text-transform: uppercase;">साल</div>
+            <div id="yearLabel" style="font-size: 0.6rem;">YEAR</div>
             <div class="val" id="yearTotal">₹0</div>
         </div>
     </div>
 
-    <div class="card charts-container" style="margin-top: 10px;">
+    <div class="card charts-container" style="margin-top: 8px;">
         <div><canvas id="monthChart"></canvas></div>
         <div><canvas id="yearChart"></canvas></div>
     </div>
 
     <div class="card">
         <div class="input-row">
-            <input type="text" id="desc" placeholder="खर्चा विवरण">
-            <input type="number" id="amt" placeholder="₹">
+            <input type="text" id="description" placeholder="Item Name (पेट्रोल, राशन)">
+            <input type="number" id="amount" placeholder="₹ Amount">
         </div>
         <div class="input-row">
-            <input type="text" id="cat" placeholder="कैटेगरी" list="cat-list">
-            <button onclick="saveData()" id="saveBtn" class="save-btn" style="flex: 0.6;">सेव करें</button>
+            <input type="text" id="category" placeholder="Category" list="cat-list">
+            <input type="time" id="reminderTime" style="flex: 0.6; font-size: 12px;">
+        </div>
+        <div class="input-row">
+            <button onclick="handleSave()" id="saveBtn" class="save-btn">SAVE</button>
+            <button onclick="setGoogleReminder()" class="rem-btn">⏰ REMINDER</button>
         </div>
         <datalist id="cat-list"></datalist>
     </div>
@@ -112,107 +101,181 @@
 
 <div class="history-scroll-area">
     <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:10px;">
-        <h3 style="margin:0; font-size:1rem; color:#333;">📜 लेन-देन हिस्ट्री</h3>
-        <span onclick="exportCSV()" style="font-size:11px; color:var(--primary); font-weight:bold;">EXCEL EXPORT</span>
+        <h3 style="margin:0; font-size:1rem; color:#333;">📜 History</h3>
+        <span onclick="downloadExcel()" style="font-size:11px; color:var(--primary); font-weight:bold; cursor:pointer;">EXCEL EXPORT</span>
     </div>
     <table class="history-table">
-        <tbody id="tableBody"></tbody>
+        <tbody id="historyTableBody"></tbody>
     </table>
 </div>
 
 <script>
-    let db = JSON.parse(localStorage.getItem('khata_pro_v9')) || [];
-    let mChart, yChart;
-    let editIdx = -1;
+    // Configuration & State
+    const STORAGE_KEY = 'khata_pro_v11';
+    let expenseData = JSON.parse(localStorage.getItem(STORAGE_KEY)) || [];
+    let monthChartInstance, yearChartInstance;
+    let currentEditIndex = -1;
 
-    window.onload = () => { setupCharts(); updateDisplay(); };
+    window.onload = () => {
+        initializeCharts();
+        refreshUI();
+    };
 
-    function setupCharts() {
-        const opt = { plugins: { legend: { display: false } }, maintainAspectRatio: false };
-        mChart = new Chart(document.getElementById('monthChart'), { type: 'doughnut', data: { labels: [], datasets: [{ data: [], backgroundColor: ['#4285F4', '#34A853', '#FBBC05', '#EA4335', '#8E44AD'] }] }, options: opt });
-        yChart = new Chart(document.getElementById('yearChart'), { type: 'doughnut', data: { labels: [], datasets: [{ data: [], backgroundColor: ['#4285F4', '#34A853', '#FBBC05', '#EA4335', '#8E44AD'] }] }, options: opt });
-    }
-
-    function saveData() {
-        const desc = document.getElementById('desc').value;
-        const amt = parseFloat(document.getElementById('amt').value);
-        const cat = document.getElementById('cat').value || "Other";
-        if(!desc || isNaN(amt)) return;
-
-        const now = new Date();
-        const entry = { date: now.toLocaleDateString('en-IN'), month: now.getMonth(), year: now.getFullYear(), desc, amt, cat };
-
-        if(editIdx === -1) db.push(entry);
-        else { db[editIdx] = entry; editIdx = -1; document.getElementById('saveBtn').innerText = "सेव करें"; }
+    function initializeCharts() {
+        const chartOptions = { 
+            plugins: { legend: { display: false } }, 
+            maintainAspectRatio: false 
+        };
+        const monthCtx = document.getElementById('monthChart').getContext('2d');
+        const yearCtx = document.getElementById('yearChart').getContext('2d');
         
-        localStorage.setItem('khata_pro_v9', JSON.stringify(db));
-        document.getElementById('desc').value = '';
-        document.getElementById('amt').value = '';
-        updateDisplay();
+        monthChartInstance = new Chart(monthCtx, { 
+            type: 'doughnut', 
+            data: { labels: [], datasets: [{ data: [], backgroundColor: ['#4285F4', '#34A853', '#FBBC05', '#EA4335', '#8E44AD'] }] }, 
+            options: chartOptions 
+        });
+        
+        yearChartInstance = new Chart(yearCtx, { 
+            type: 'doughnut', 
+            data: { labels: [], datasets: [{ data: [], backgroundColor: ['#4285F4', '#34A853', '#FBBC05', '#EA4335', '#8E44AD'] }] }, 
+            options: chartOptions 
+        });
     }
 
-    function updateDisplay() {
+    function handleSave() {
+        const desc = document.getElementById('description').value;
+        const amt = parseFloat(document.getElementById('amount').value);
+        const cat = document.getElementById('category').value || "General";
+        
+        if(!desc || isNaN(amt)) {
+            alert("Please enter description and amount!");
+            return;
+        }
+
         const now = new Date();
-        const tbody = document.getElementById('tableBody');
-        tbody.innerHTML = '';
-        let mTotal = 0, yTotal = 0, mData = {}, yData = {};
+        const entry = {
+            id: Date.now(),
+            date: now.toLocaleDateString('en-IN'),
+            month: now.getMonth(),
+            year: now.getFullYear(),
+            desc: desc,
+            amt: amt,
+            cat: cat
+        };
 
-        db.slice().reverse().forEach((item, index) => {
-            const realIdx = (db.length - 1) - index;
-            tbody.innerHTML += `<tr>
-                <td><b>${item.desc}</b><br><small style="color:#888">${item.date} | ${item.cat}</small></td>
-                <td style="text-align:right">₹${item.amt}<br>
-                    <button class="btn-act" onclick="edit(${realIdx})">Edit</button>
-                    <button class="btn-act btn-del" onclick="del(${realIdx})">Del</button>
-                </td>
-            </tr>`;
+        if(currentEditIndex === -1) {
+            expenseData.push(entry);
+        } else {
+            expenseData[currentEditIndex] = entry;
+            currentEditIndex = -1;
+            document.getElementById('saveBtn').innerText = "SAVE";
+        }
 
+        localStorage.setItem(STORAGE_KEY, JSON.stringify(expenseData));
+        clearInputs();
+        refreshUI();
+    }
+
+    function refreshUI() {
+        const now = new Date();
+        const tableBody = document.getElementById('historyTableBody');
+        tableBody.innerHTML = '';
+        
+        let monthlyTotal = 0, yearlyTotal = 0;
+        let monthChartData = {}, yearChartData = {};
+
+        // Process data in reverse for history view
+        expenseData.slice().reverse().forEach((item, index) => {
+            const actualIndex = (expenseData.length - 1) - index;
+            
+            // Build Table Row
+            tableBody.innerHTML += `
+                <tr>
+                    <td><b>${item.desc}</b><br><small style="color:#888">${item.date} | ${item.cat}</small></td>
+                    <td style="text-align:right">₹${item.amt.toLocaleString('en-IN')}<br>
+                        <button class="btn-act" onclick="initiateEdit(${actualIndex})">Edit</button>
+                        <button class="btn-act btn-del" onclick="handleDelete(${actualIndex})">Del</button>
+                    </td>
+                </tr>`;
+
+            // Totals and Charts Logic
             if(item.year === now.getFullYear()) {
-                yTotal += item.amt;
-                yData[item.cat] = (yData[item.cat] || 0) + item.amt;
+                yearlyTotal += item.amt;
+                yearChartData[item.cat] = (yearChartData[item.cat] || 0) + item.amt;
+                
                 if(item.month === now.getMonth()) {
-                    mTotal += item.amt;
-                    mData[item.cat] = (mData[item.cat] || 0) + item.amt;
+                    monthlyTotal += item.amt;
+                    monthChartData[item.cat] = (monthChartData[item.cat] || 0) + item.amt;
                 }
             }
         });
 
-        document.getElementById('monthTotal').innerText = `₹${mTotal}`;
-        document.getElementById('yearTotal').innerText = `₹${yTotal}`;
-        const months = ["JAN", "FEB", "MAR", "APR", "MAY", "JUN", "JUL", "AUG", "SEP", "OCT", "NOV", "DEC"];
-        document.getElementById('mName').innerText = months[now.getMonth()];
-        document.getElementById('yName').innerText = now.getFullYear();
+        // Update Text UI
+        document.getElementById('monthTotal').innerText = `₹${monthlyTotal.toLocaleString('en-IN')}`;
+        document.getElementById('yearTotal').innerText = `₹${yearlyTotal.toLocaleString('en-IN')}`;
+        
+        const monthNames = ["JAN", "FEB", "MAR", "APR", "MAY", "JUN", "JUL", "AUG", "SEP", "OCT", "NOV", "DEC"];
+        document.getElementById('monthLabel').innerText = monthNames[now.getMonth()];
+        document.getElementById('yearLabel').innerText = now.getFullYear();
 
-        mChart.data.labels = Object.keys(mData);
-        mChart.data.datasets[0].data = Object.values(mData);
-        mChart.update();
-
-        yChart.data.labels = Object.keys(yData);
-        yChart.data.datasets[0].data = Object.values(yData);
-        yChart.update();
+        // Update Charts
+        updateChart(monthChartInstance, monthChartData);
+        updateChart(yearChartInstance, yearChartData);
     }
 
-    function edit(idx) {
-        const item = db[idx];
-        document.getElementById('desc').value = item.desc;
-        document.getElementById('amt').value = item.amt;
-        document.getElementById('cat').value = item.cat;
-        editIdx = idx;
+    function updateChart(chart, dataMap) {
+        chart.data.labels = Object.keys(dataMap);
+        chart.data.datasets[0].data = Object.values(dataMap);
+        chart.update();
+    }
+
+    function initiateEdit(index) {
+        const item = expenseData[index];
+        document.getElementById('description').value = item.desc;
+        document.getElementById('amount').value = item.amt;
+        document.getElementById('category').value = item.cat;
+        currentEditIndex = index;
         document.getElementById('saveBtn').innerText = "UPDATE";
     }
 
-    function del(idx) {
-        if(confirm("डिलीट करें?")) { db.splice(idx, 1); localStorage.setItem('khata_pro_v9', JSON.stringify(db)); updateDisplay(); }
+    function handleDelete(index) {
+        if(confirm("Are you sure you want to delete this?")) {
+            expenseData.splice(index, 1);
+            localStorage.setItem(STORAGE_KEY, JSON.stringify(expenseData));
+            refreshUI();
+        }
     }
 
-    function exportCSV() {
-        let csv = "Date,Category,Description,Amount\n";
-        db.forEach(r => csv += `${r.date},${r.cat},${r.desc},${r.amt}\n`);
-        const blob = new Blob([csv], { type: 'text/csv' });
-        const a = document.createElement('a');
-        a.href = URL.createObjectURL(blob);
-        a.download = 'KhataPro_Backup.csv';
-        a.click();
+    function setGoogleReminder() {
+        const timeValue = document.getElementById('reminderTime').value;
+        if(!timeValue) {
+            alert("Please select a time first!");
+            return;
+        }
+        const todayStr = new Date().toISOString().split('T')[0].replace(/-/g, '');
+        const startTime = timeValue.replace(':', '') + '00';
+        const calendarUrl = `https://www.google.com/calendar/render?action=TEMPLATE&text=KhataPro+Update&dates=${todayStr}T${startTime}/${todayStr}T${startTime}&details=Write+your+expenses&output=xml`;
+        window.open(calendarUrl, '_blank');
+    }
+
+    function clearInputs() {
+        document.getElementById('description').value = '';
+        document.getElementById('amount').value = '';
+        document.getElementById('category').value = '';
+    }
+
+    function downloadExcel() {
+        if(expenseData.length === 0) return;
+        let csvContent = "Date,Category,Description,Amount\n";
+        expenseData.forEach(item => {
+            csvContent += `${item.date},${item.cat},${item.desc},${item.amt}\n`;
+        });
+        const blob = new Blob([csvContent], { type: 'text/csv' });
+        const url = URL.createObjectURL(blob);
+        const link = document.createElement('a');
+        link.href = url;
+        link.download = 'KhataPro_Report.csv';
+        link.click();
     }
 </script>
 </body>
