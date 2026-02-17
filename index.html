@@ -1,0 +1,169 @@
+<!DOCTYPE html>
+<html lang="hi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>BizExpense Pro - Full Dashboard</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        :root { --primary: #4285F4; --success: #34A853; --bg: #f8fafc; }
+        body { font-family: 'Segoe UI', sans-serif; background: var(--bg); margin: 0; padding: 15px; padding-bottom: 50px; }
+        .card { background: white; padding: 20px; border-radius: 15px; box-shadow: 0 4px 12px rgba(0,0,0,0.1); margin-bottom: 15px; }
+        
+        .summary-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 15px; }
+        .summary-card { padding: 15px; border-radius: 12px; text-align: center; color: white; }
+        .month-card { background: linear-gradient(135deg, #4285F4, #2b6cb0); }
+        .year-card { background: linear-gradient(135deg, #34A853, #22543d); }
+        .summary-label { font-size: 0.8rem; opacity: 0.9; margin-bottom: 5px; }
+        .summary-value { font-size: 1.3rem; font-weight: bold; }
+
+        h3 { margin-top: 0; font-size: 1.1rem; color: #1e293b; border-bottom: 2px solid #f1f5f9; padding-bottom: 8px; }
+        input, button { width: 100%; padding: 12px; margin: 8px 0; border: 1px solid #e2e8f0; border-radius: 10px; font-size: 16px; box-sizing: border-box; }
+        button { background: var(--primary); color: white; border: none; font-weight: bold; cursor: pointer; transition: 0.2s; }
+        .btn-export { background: #6c757d; margin-bottom: 15px; font-size: 14px; }
+        .calendar-btn { background: #EA4335; }
+        .history-table { width: 100%; border-collapse: collapse; font-size: 13px; }
+        .history-table th, td { padding: 10px; text-align: left; border-bottom: 1px solid #f1f5f9; }
+    </style>
+</head>
+<body>
+
+    <div class="summary-grid">
+        <div class="summary-card month-card">
+            <div class="summary-label" id="monthLabel">इस महीने</div>
+            <div class="summary-value" id="monthTotal">₹0</div>
+        </div>
+        <div class="summary-card year-card">
+            <div class="summary-label" id="yearLabel">इस साल</div>
+            <div class="summary-value" id="yearTotal">₹0</div>
+        </div>
+    </div>
+
+    <div class="card">
+        <h3>💰 नया खर्चा जोड़ें</h3>
+        <input type="text" id="desc" placeholder="खर्चे का विवरण (जैसे: रेंट)">
+        <input type="number" id="amt" placeholder="रकम (₹)">
+        <input type="text" id="cat" placeholder="कैटेगरी (जैसे: Office, Food)" list="cat-list">
+        <datalist id="cat-list"></datalist>
+        <button onclick="saveData()">एंट्री सेव करें</button>
+    </div>
+
+    <div class="card">
+        <h3>⏰ गूगल कैलेंडर रिमाइंडर</h3>
+        <input type="time" id="remTime">
+        <button class="calendar-btn" onclick="addToGoogleCalendar()">रिमाइंडर सेट करें</button>
+    </div>
+
+    <div class="card">
+        <h3>📊 खर्चों का विवरण</h3>
+        <canvas id="expenseChart" style="max-height: 200px;"></canvas>
+    </div>
+
+    <div class="card">
+        <h3>📜 हिस्ट्री</h3>
+        <button class="btn-export" onclick="exportToCSV()">Excel (CSV) डाउनलोड करें</button>
+        <div style="overflow-x:auto;">
+            <table class="history-table">
+                <thead>
+                    <tr><th>तारीख</th><th>कैटेगरी</th><th>रकम</th></tr>
+                </thead>
+                <tbody id="tableBody"></tbody>
+            </table>
+        </div>
+    </div>
+
+<script>
+    let db = JSON.parse(localStorage.getItem('biz_india_final_v4')) || [];
+    let myChart;
+
+    window.onload = () => {
+        setDates();
+        initChart();
+        updateDisplay();
+    };
+
+    function setDates() {
+        const now = new Date();
+        const months = ["जनवरी", "फरवरी", "मार्च", "अप्रैल", "मई", "जून", "जुलाई", "अगस्त", "सितंबर", "अक्टूबर", "नवंबर", "दिसंबर"];
+        document.getElementById('monthLabel').innerText = `इस महीने (${months[now.getMonth()]})`;
+        document.getElementById('yearLabel').innerText = `इस साल (${now.getFullYear()})`;
+    }
+
+    function initChart() {
+        const ctx = document.getElementById('expenseChart').getContext('2d');
+        myChart = new Chart(ctx, {
+            type: 'doughnut',
+            data: { labels: [], datasets: [{ data: [], backgroundColor: ['#4285F4', '#34A853', '#FBBC05', '#EA4335', '#8E44AD'] }] },
+            options: { maintainAspectRatio: false }
+        });
+    }
+
+    function saveData() {
+        const desc = document.getElementById('desc').value;
+        const amt = parseFloat(document.getElementById('amt').value);
+        const cat = document.getElementById('cat').value || "Other";
+        const now = new Date();
+
+        if(!desc || isNaN(amt)) return alert("कृपया सही जानकारी भरें!");
+
+        db.push({ 
+            date: now.toLocaleDateString('en-IN'), 
+            month: now.getMonth(), 
+            year: now.getFullYear(),
+            desc, amt, cat 
+        });
+        
+        localStorage.setItem('biz_india_final_v4', JSON.stringify(db));
+        document.getElementById('desc').value = '';
+        document.getElementById('amt').value = '';
+        updateDisplay();
+    }
+
+    function updateDisplay() {
+        const tbody = document.getElementById('tableBody');
+        tbody.innerHTML = '';
+        const totals = {};
+        let mTotal = 0, yTotal = 0;
+        const now = new Date();
+
+        db.slice().reverse().forEach(item => {
+            tbody.innerHTML += `<tr><td>${item.date}</td><td>${item.cat}</td><td>₹${item.amt.toLocaleString('en-IN')}</td></tr>`;
+            totals[item.cat] = (totals[item.cat] || 0) + item.amt;
+
+            if(item.year === now.getFullYear()) {
+                yTotal += item.amt;
+                if(item.month === now.getMonth()) mTotal += item.amt;
+            }
+        });
+
+        document.getElementById('monthTotal').innerText = `₹${mTotal.toLocaleString('en-IN')}`;
+        document.getElementById('yearTotal').innerText = `₹${yTotal.toLocaleString('en-IN')}`;
+
+        myChart.data.labels = Object.keys(totals);
+        myChart.data.datasets[0].data = Object.values(totals);
+        myChart.update();
+    }
+
+    function exportToCSV() {
+        if(db.length === 0) return alert("कोई डेटा नहीं मिला!");
+        let csv = "Date,Category,Description,Amount(INR)\n";
+        db.forEach(r => csv += `${r.date},${r.cat},${r.desc},${r.amt}\n`);
+        
+        const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+        const link = document.createElement("a");
+        link.href = URL.createObjectURL(blob);
+        link.setAttribute("download", "My_Business_Expenses.csv");
+        link.click();
+    }
+
+    function addToGoogleCalendar() {
+        const time = document.getElementById('remTime').value;
+        if(!time) return alert("समय चुनें!");
+        const today = new Date().toISOString().split('T')[0].replace(/-/g, '');
+        const startTime = time.replace(':', '') + '00';
+        const url = `https://www.google.com/calendar/render?action=TEMPLATE&text=Expense+Update&dates=${today}T${startTime}/${today}T${startTime}&details=अपना+खर्चा+अपडेट+करें&output=xml`;
+        window.open(url, '_blank');
+    }
+</script>
+</body>
+</html>
