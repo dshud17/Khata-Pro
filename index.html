@@ -9,65 +9,46 @@
     <link rel="apple-touch-icon" href="icon.png">
     <meta name="mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-capable" content="yes">
-    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-    <meta name="apple-mobile-web-app-title" content="Khata-Pro">
 
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <style>
-        :root { --primary: #4285F4; --success: #34A853; --bg: #f8fafc; --red: #EA4335; --slate: #1e293b; }
+        :root { --primary: #4285F4; --bg: #f8fafc; --red: #EA4335; --slate: #1e293b; }
         
-        body { 
-            margin: 0; padding: 10px; 
-            background: var(--bg);
-            font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
-            color: var(--slate);
-            -webkit-font-smoothing: antialiased;
-        }
-
-        .app-title {
-            text-align: center; font-size: 1.5rem; font-weight: 800;
-            color: var(--primary); margin: 15px 0; letter-spacing: 1.5px;
-            text-shadow: 1px 1px 2px rgba(0,0,0,0.05);
-        }
-
-        .card { background: white; padding: 15px; border-radius: 20px; box-shadow: 0 4px 15px rgba(0,0,0,0.05); margin-bottom: 12px; border: 1px solid rgba(0,0,0,0.02); }
+        body { margin: 0; padding: 10px; background: var(--bg); font-family: 'Segoe UI', sans-serif; color: var(--slate); }
+        .app-title { text-align: center; font-size: 1.4rem; font-weight: 800; color: var(--primary); margin: 10px 0; letter-spacing: 1.2px; }
+        .card { background: white; padding: 15px; border-radius: 18px; box-shadow: 0 4px 10px rgba(0,0,0,0.03); margin-bottom: 15px; }
         
-        /* Summary Grid */
+        /* Dashboard Summary */
         .summary-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 12px; }
-        .summary-card { padding: 18px 10px; border-radius: 16px; text-align: center; color: white; position: relative; overflow: hidden; }
+        .summary-card { padding: 15px 5px; border-radius: 14px; text-align: center; color: white; }
         .month-card { background: linear-gradient(135deg, #4285F4, #2563eb); }
         .year-card { background: linear-gradient(135deg, #34A853, #16a34a); }
-        .val { font-size: 1.3rem; font-weight: 800; margin-top: 5px; }
-        .label { font-size: 0.75rem; font-weight: 700; opacity: 0.9; text-transform: uppercase; letter-spacing: 0.5px; }
+        .val { font-size: 1.2rem; font-weight: 800; margin-top: 4px; }
+        .label { font-size: 0.65rem; font-weight: 700; opacity: 0.9; text-transform: uppercase; }
 
-        /* Input Form */
-        .input-row { display: flex; gap: 8px; margin-bottom: 10px; }
-        input { flex: 1; padding: 14px; border: 1px solid #e2e8f0; border-radius: 12px; font-size: 16px; outline: none; transition: 0.3s; background: #fdfdfd; }
-        input:focus { border-color: var(--primary); background: #fff; box-shadow: 0 0 0 4px rgba(66,133,244,0.1); }
-        
-        .btn-group { display: flex; gap: 8px; }
-        .save-btn { flex: 1.2; padding: 15px; background: var(--primary); color: white; border: none; border-radius: 12px; font-weight: bold; font-size: 15px; cursor: pointer; transition: 0.2s; }
-        .save-btn:active { transform: scale(0.98); opacity: 0.9; }
-        .rem-btn { flex: 0.8; padding: 15px; background: #fff; color: var(--red); border: 2px solid var(--red); border-radius: 12px; font-weight: bold; font-size: 13px; cursor: pointer; }
+        /* Form Controls */
+        .input-row { display: flex; gap: 8px; margin-bottom: 8px; }
+        input { flex: 1; padding: 12px; border: 1px solid #e2e8f0; border-radius: 10px; font-size: 15px; outline: none; background: #fff; }
+        .save-btn { flex: 1.2; padding: 14px; background: var(--primary); color: white; border: none; border-radius: 10px; font-weight: bold; cursor: pointer; }
+        .rem-btn { flex: 0.8; padding: 14px; background: #fff; color: var(--red); border: 2px solid var(--red); border-radius: 10px; font-weight: bold; font-size: 12px; }
 
-        /* Charts Section (Below Form) */
-        .charts-section { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; height: 150px; }
-        .chart-box { position: relative; height: 100%; width: 100%; display: flex; flex-direction: column; align-items: center; }
-        .chart-title { font-size: 0.7rem; font-weight: bold; color: #64748b; margin-bottom: 8px; }
+        /* --- Separate Mini Charts Section --- */
+        .analysis-zone { background: #edf2f7; padding: 15px; border-radius: 20px; margin-bottom: 15px; }
+        .charts-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; height: 110px; }
+        .chart-item { display: flex; flex-direction: column; align-items: center; justify-content: center; }
+        .chart-caption { font-size: 10px; font-weight: 800; color: #4a5568; margin-bottom: 5px; text-transform: uppercase; }
+        .chart-wrap { position: relative; height: 85px; width: 85px; } /* Small and Fixed Size */
 
-        /* History List */
-        .history-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; padding: 0 5px; }
+        /* History Section */
+        .history-title { font-size: 1rem; font-weight: 800; margin-bottom: 12px; display: flex; justify-content: space-between; align-items: center; border-bottom: 2px solid #e2e8f0; padding-bottom: 5px; }
         .history-table { width: 100%; border-collapse: collapse; }
-        .history-table td { padding: 14px 5px; border-bottom: 1px solid #f1f5f9; vertical-align: middle; }
-        .item-name { font-weight: 700; color: #334155; font-size: 15px; }
-        .item-meta { font-size: 0.75rem; color: #94a3b8; font-weight: 500; }
-        .item-amt { font-weight: 800; text-align: right; color: var(--slate); font-size: 15px; }
-        .action-btns { margin-top: 5px; }
-        .btn-act { color: var(--primary); background: none; border: none; font-size: 11px; font-weight: bold; padding: 0; cursor: pointer; text-decoration: underline; }
-        .btn-del { color: var(--red); margin-left: 12px; }
-
-        /* Export Button */
-        .export-btn { font-size: 11px; font-weight: bold; color: var(--primary); cursor: pointer; border: 1px solid var(--primary); padding: 4px 10px; border-radius: 20px; }
+        .history-table td { padding: 12px 5px; border-bottom: 1px solid #f1f5f9; }
+        .item-n { font-weight: 700; font-size: 14px; color: #2d3748; }
+        .item-m { font-size: 11px; color: #a0aec0; }
+        .item-a { font-weight: 800; text-align: right; font-size: 14px; }
+        .act-group { margin-top: 4px; }
+        .b-act { color: var(--primary); background: none; border: none; font-size: 10px; font-weight: bold; cursor: pointer; margin-right: 10px; padding: 0; }
+        .b-del { color: var(--red); }
     </style>
 </head>
 <body>
@@ -75,214 +56,94 @@
     <div class="app-title">KHATA-PRO</div>
 
     <div class="summary-grid">
-        <div class="summary-card month-card">
-            <div id="monthLabel" class="label">MONTH</div>
-            <div class="val" id="monthTotal">₹0</div>
-        </div>
-        <div class="summary-card year-card">
-            <div id="yearLabel" class="label">YEAR</div>
-            <div class="val" id="yearTotal">₹0</div>
-        </div>
+        <div class="summary-card month-card"><div id="mLabel" class="label">MONTH</div><div class="val" id="mTotal">₹0</div></div>
+        <div class="summary-card year-card"><div id="yLabel" class="label">YEAR</div><div class="val" id="yTotal">₹0</div></div>
     </div>
 
     <div class="card">
-        <div class="input-row">
-            <input type="text" id="description" placeholder="खर्चा (Chai, Petrol)">
-            <input type="number" id="amount" placeholder="₹ Amount">
-        </div>
-        <div class="input-row">
-            <input type="text" id="category" placeholder="Category" list="cat-list">
-            <input type="time" id="reminderTime" style="flex: 0.5;">
-        </div>
-        <div class="btn-group">
-            <button onclick="handleSave()" id="saveBtn" class="save-btn">SAVE ENTRY</button>
-            <button onclick="setGoogleReminder()" class="rem-btn">⏰ REMIND</button>
-        </div>
+        <div class="input-row"><input type="text" id="desc" placeholder="Item Name"><input type="number" id="amt" placeholder="₹ Amount"></div>
+        <div class="input-row"><input type="text" id="cat" placeholder="Category" list="cat-list"><input type="time" id="remTime" style="flex:0.5;"></div>
+        <div class="input-row"><button onclick="doSave()" id="saveBtn" class="save-btn">SAVE</button><button onclick="doRem()" class="rem-btn">⏰ REMIND</button></div>
         <datalist id="cat-list">
-            <option value="Ration">
-            <option value="Fuel">
-            <option value="Sabzi">
-            <option value="Fruit">
-            <option value="Milk">
-            <option value="Other">
+            <option value="Ration"><option value="Fuel"><option value="Sabzi"><option value="Fruit"><option value="Milk">
         </datalist>
     </div>
 
-    <div class="card">
-        <div class="charts-section">
-            <div class="chart-box">
-                <div class="chart-title">THIS MONTH</div>
-                <div style="flex:1; width:100%"><canvas id="monthChart"></canvas></div>
+    <div class="analysis-zone">
+        <div class="charts-grid">
+            <div class="chart-item">
+                <div class="chart-caption">Monthly Split</div>
+                <div class="chart-wrap"><canvas id="mChart"></canvas></div>
             </div>
-            <div class="chart-box">
-                <div class="chart-title">THIS YEAR</div>
-                <div style="flex:1; width:100%"><canvas id="yearChart"></canvas></div>
+            <div class="chart-item">
+                <div class="chart-caption">Yearly Split</div>
+                <div class="chart-wrap"><canvas id="yChart"></canvas></div>
             </div>
         </div>
     </div>
 
     <div class="card" style="margin-bottom: 40px;">
-        <div class="history-header">
-            <span style="font-weight: 800; font-size: 1.1rem;">📜 History</span>
-            <span onclick="downloadExcel()" class="export-btn">EXCEL EXPORT</span>
-        </div>
-        <table class="history-table">
-            <tbody id="historyTableBody"></tbody>
-        </table>
+        <div class="history-title"><span>📜 History</span><span onclick="doExcel()" style="font-size:10px; color:var(--primary);">DOWNLOAD</span></div>
+        <table class="history-table"><tbody id="tableBody"></tbody></table>
     </div>
 
 <script>
-    /* Khata-Pro Logic (Standard English Script)
-       V13 Final Stable Version
-    */
-    const DB_KEY = 'khata_pro_v13_stable';
-    let records = JSON.parse(localStorage.getItem(DB_KEY)) || [];
-    let monthChart, yearChart;
-    let editIdx = -1;
+    const KEY = 'khata_pro_v14_final';
+    let data = JSON.parse(localStorage.getItem(KEY)) || [];
+    let mc, yc, editIdx = -1;
 
-    window.onload = () => {
-        initCharts();
-        renderUI();
-    };
+    window.onload = () => { initC(); refresh(); };
 
-    function initCharts() {
-        const config = { 
-            type: 'doughnut', 
-            data: { labels: [], datasets: [{ data: [], backgroundColor: ['#4285F4', '#34A853', '#FBBC05', '#EA4335', '#8E44AD', '#00ACC1'] }] }, 
-            options: { plugins: { legend: { display: false } }, maintainAspectRatio: false, cutout: '72%' } 
-        };
-        monthChart = new Chart(document.getElementById('monthChart'), JSON.parse(JSON.stringify(config)));
-        yearChart = new Chart(document.getElementById('yearChart'), JSON.parse(JSON.stringify(config)));
+    function initC() {
+        const opt = { plugins: { legend: { display: false } }, maintainAspectRatio: false, cutout: '75%' };
+        mc = new Chart(document.getElementById('mChart'), { type: 'doughnut', data: { labels: [], datasets: [{ data: [], backgroundColor: ['#4285F4', '#34A853', '#FBBC05', '#EA4335', '#8E44AD'] }] }, options: opt });
+        yc = new Chart(document.getElementById('yChart'), { type: 'doughnut', data: { labels: [], datasets: [{ data: [], backgroundColor: ['#4285F4', '#34A853', '#FBBC05', '#EA4335', '#8E44AD'] }] }, options: opt });
     }
 
-    function handleSave() {
-        const desc = document.getElementById('description').value;
-        const amt = parseFloat(document.getElementById('amount').value);
-        const cat = document.getElementById('category').value || "Other";
-        
-        if(!desc || isNaN(amt)) {
-            alert("कृपया सही विवरण और रकम भरें!");
-            return;
-        }
-
+    function doSave() {
+        const d = document.getElementById('desc').value, a = parseFloat(document.getElementById('amt').value), c = document.getElementById('cat').value || "Other";
+        if(!d || isNaN(a)) return alert("Details fill karein!");
         const now = new Date();
-        const data = {
-            timestamp: Date.now(),
-            date: now.toLocaleDateString('en-IN'),
-            m: now.getMonth(),
-            y: now.getFullYear(),
-            desc, amt, cat
-        };
-
-        if(editIdx === -1) {
-            records.push(data);
-        } else {
-            records[editIdx] = data;
-            editIdx = -1;
-            document.getElementById('saveBtn').innerText = "SAVE ENTRY";
-        }
-
-        localStorage.setItem(DB_KEY, JSON.stringify(records));
-        resetForm();
-        renderUI();
+        const entry = { id: Date.now(), date: now.toLocaleDateString('en-IN'), mo: now.getMonth(), yr: now.getFullYear(), d, a, c };
+        if(editIdx === -1) data.push(entry);
+        else { data[editIdx] = entry; editIdx = -1; document.getElementById('saveBtn').innerText = "SAVE"; }
+        localStorage.setItem(KEY, JSON.stringify(data));
+        document.getElementById('desc').value = ''; document.getElementById('amt').value = '';
+        refresh();
     }
 
-    function renderUI() {
-        const now = new Date();
-        const listBody = document.getElementById('historyTableBody');
-        listBody.innerHTML = '';
-        
-        let mSum = 0, ySum = 0, mGroup = {}, yGroup = {};
+    function refresh() {
+        const now = new Date(), body = document.getElementById('tableBody');
+        body.innerHTML = '';
+        let ms = 0, ys = 0, mg = {}, yg = {};
 
-        records.slice().reverse().forEach((item, i) => {
-            const actualIndex = (records.length - 1) - i;
-            
-            // Build Table
-            listBody.innerHTML += `
-                <tr>
-                    <td>
-                        <div class="item-name">${item.desc}</div>
-                        <div class="item-meta">${item.date} | ${item.cat}</div>
-                        <div class="action-btns">
-                            <button class="btn-act" onclick="startEdit(${actualIndex})">Edit</button>
-                            <button class="btn-act btn-del" onclick="confirmDelete(${actualIndex})">Delete</button>
-                        </div>
-                    </td>
-                    <td class="item-amt">₹${item.amt.toLocaleString('en-IN')}</td>
-                </tr>`;
-
-            // Calculate Metrics
-            if(item.y === now.getFullYear()) {
-                ySum += item.amt;
-                yGroup[item.cat] = (yGroup[item.cat] || 0) + item.amt;
-                if(item.m === now.getMonth()) {
-                    mSum += item.amt;
-                    mGroup[item.cat] = (mGroup[item.cat] || 0) + item.amt;
-                }
+        data.slice().reverse().forEach((item, i) => {
+            const idx = (data.length - 1) - i;
+            body.innerHTML += `<tr>
+                <td><div class="item-n">${item.d}</div><div class="item-m">${item.date} | ${item.c}</div>
+                    <div class="act-group"><button class="b-act" onclick="startE(${idx})">Edit</button><button class="b-act b-del" onclick="doDel(${idx})">Del</button></div>
+                </td>
+                <td class="item-a">₹${item.a.toLocaleString('en-IN')}</td>
+            </tr>`;
+            if(item.yr === now.getFullYear()) {
+                ys += item.a; yg[item.c] = (yg[item.c] || 0) + item.a;
+                if(item.mo === now.getMonth()) { ms += item.a; mg[item.c] = (mg[item.c] || 0) + item.a; }
             }
         });
 
-        // Update Text
-        document.getElementById('monthTotal').innerText = `₹${mSum.toLocaleString('en-IN')}`;
-        document.getElementById('yearTotal').innerText = `₹${ySum.toLocaleString('en-IN')}`;
-        
-        const monthNames = ["JANUARY", "FEBRUARY", "MARCH", "APRIL", "MAY", "JUNE", "JULY", "AUGUST", "SEPTEMBER", "OCTOBER", "NOVEMBER", "DECEMBER"];
-        document.getElementById('monthLabel').innerText = monthNames[now.getMonth()];
-        document.getElementById('yearLabel').innerText = now.getFullYear();
-
-        // Refresh Charts
-        updateChartData(monthChart, mGroup);
-        updateChartData(yearChart, yGroup);
+        document.getElementById('mTotal').innerText = `₹${ms.toLocaleString('en-IN')}`;
+        document.getElementById('yTotal').innerText = `₹${ys.toLocaleString('en-IN')}`;
+        const months = ["JAN", "FEB", "MAR", "APR", "MAY", "JUN", "JUL", "AUG", "SEP", "OCT", "NOV", "DEC"];
+        document.getElementById('mLabel').innerText = months[now.getMonth()];
+        document.getElementById('yLabel').innerText = now.getFullYear();
+        upC(mc, mg); upC(yc, yg);
     }
 
-    function updateChartData(chart, group) {
-        chart.data.labels = Object.keys(group);
-        chart.data.datasets[0].data = Object.values(group);
-        chart.update();
-    }
-
-    function startEdit(idx) {
-        const record = records[idx];
-        document.getElementById('description').value = record.desc;
-        document.getElementById('amount').value = record.amt;
-        document.getElementById('category').value = record.cat;
-        editIdx = idx;
-        document.getElementById('saveBtn').innerText = "UPDATE ENTRY";
-        window.scrollTo({ top: 0, behavior: 'smooth' });
-    }
-
-    function confirmDelete(idx) {
-        if(confirm("क्या आप इस रिकॉर्ड को डिलीट करना चाहते हैं?")) {
-            records.splice(idx, 1);
-            localStorage.setItem(DB_KEY, JSON.stringify(records));
-            renderUI();
-        }
-    }
-
-    function setGoogleReminder() {
-        const t = document.getElementById('reminderTime').value;
-        if(!t) return alert("रिमाइंडर के लिए समय चुनें!");
-        const d = new Date().toISOString().split('T')[0].replace(/-/g, '');
-        const s = t.replace(':', '') + '00';
-        window.open(`https://www.google.com/calendar/render?action=TEMPLATE&text=KhataPro+Update&dates=${d}T${s}/${d}T${s}&details=Check+and+Update+Daily+Expenses&output=xml`, '_blank');
-    }
-
-    function resetForm() {
-        document.getElementById('description').value = '';
-        document.getElementById('amount').value = '';
-        document.getElementById('category').value = '';
-    }
-
-    function downloadExcel() {
-        if(records.length === 0) return alert("कोई डेटा नहीं है!");
-        let csv = "Date,Category,Description,Amount\n";
-        records.forEach(r => csv += `${r.date},${r.cat},${r.desc},${r.amt}\n`);
-        const blob = new Blob([csv], { type: 'text/csv' });
-        const a = document.createElement('a');
-        a.href = URL.createObjectURL(blob);
-        a.download = `KhataPro_Report_${new Date().toLocaleDateString()}.csv`;
-        a.click();
-    }
+    function upC(c, d) { c.data.labels = Object.keys(d); c.data.datasets[0].data = Object.values(d); c.update(); }
+    function startE(i) { const r = data[i]; document.getElementById('desc').value = r.d; document.getElementById('amt').value = r.a; document.getElementById('cat').value = r.c; editIdx = i; document.getElementById('saveBtn').innerText = "UPDATE"; window.scrollTo(0,0); }
+    function doDel(i) { if(confirm("Delete?")) { data.splice(i, 1); localStorage.setItem(KEY, JSON.stringify(data)); refresh(); } }
+    function doRem() { const t = document.getElementById('remTime').value; if(!t) return alert("Time select karein!"); window.open(`https://www.google.com/calendar/render?action=TEMPLATE&text=KhataPro+Update&dates=${new Date().toISOString().split('T')[0].replace(/-/g, '')}T${t.replace(':','')}00/&details=Update+Expenses&output=xml`, '_blank'); }
+    function doExcel() { let csv = "Date,Category,Description,Amount\n"; data.forEach(r => csv += `${r.date},${r.c},${r.d},${r.a}\n`); const blob = new Blob([csv], { type: 'text/csv' }); const a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = 'KhataPro.csv'; a.click(); }
 </script>
 </body>
 </html>
