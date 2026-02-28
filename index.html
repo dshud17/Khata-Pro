@@ -2,38 +2,39 @@
 <html lang="hi">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
 <title>Khata-Pro</title>
 
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 
 <style>
-:root{--primary:#4285F4;--bg:#f8fafc;--red:#EA4335;--slate:#1e293b;}
-body{margin:0;padding:10px;background:var(--bg);font-family:Segoe UI;}
-.app-title{text-align:center;font-weight:800;color:var(--primary);}
-.card{background:#fff;padding:15px;border-radius:18px;margin-bottom:15px;}
+:root{--p:#4285F4;--r:#EA4335;}
+body{margin:0;padding:10px;background:#f8fafc;font-family:Segoe UI}
+.app-title{text-align:center;font-weight:800;color:var(--p)}
+.card{background:#fff;padding:15px;border-radius:15px;margin-bottom:15px}
 
-.summary-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px}
-.summary-card{padding:15px;text-align:center;color:#fff;border-radius:14px}
-.month-card{background:#2563eb}
-.year-card{background:#16a34a}
+.summary{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.box{color:#fff;text-align:center;padding:15px;border-radius:12px}
+.m{background:#2563eb}
+.y{background:#16a34a}
 
 .input-row{display:flex;gap:8px;margin-bottom:8px}
-input{flex:1;padding:12px;border:1px solid #e2e8f0;border-radius:10px}
-.save-btn{flex:1;background:#4285F4;color:#fff;border:none;border-radius:10px}
-.rem-btn{flex:.7;border:2px solid red;color:red;background:#fff}
+input{flex:1;padding:12px;border-radius:8px;border:1px solid #ddd}
+button{padding:12px;border:none;border-radius:8px;font-weight:bold}
+.save{background:#4285F4;color:#fff}
 
-.analysis-zone{background:#edf2f7;padding:15px;border-radius:20px}
-.charts-grid{display:grid;grid-template-columns:1fr 1fr;gap:20px;height:120px}
-.chart-wrap{height:90px;width:90px;margin:auto}
+.analysis{background:#edf2f7;padding:15px;border-radius:18px}
+.grid{display:grid;grid-template-columns:1fr 1fr}
+.chart{height:100px;width:100px;margin:auto}
 
-.history-title{display:flex;justify-content:space-between;
-font-weight:800;border-bottom:2px solid #eee;padding-bottom:5px}
+.history-title{
+display:flex;justify-content:space-between;
+font-weight:800;border-bottom:2px solid #eee}
 
-.history-table td{padding:10px;border-bottom:1px solid #eee}
-.item-a{text-align:right;font-weight:800}
-.b-act{border:none;background:none;color:#4285F4}
-.b-del{color:red}
+td{padding:10px;border-bottom:1px solid #eee}
+.amt{text-align:right;font-weight:800}
+.act{border:none;background:none;color:#4285F4}
+.del{color:red}
 </style>
 </head>
 
@@ -41,16 +42,9 @@ font-weight:800;border-bottom:2px solid #eee;padding-bottom:5px}
 
 <div class="app-title">KHATA-PRO</div>
 
-<div class="summary-grid">
-<div class="summary-card month-card">
-<div id="mLabel">MONTH</div>
-<div id="mTotal">₹0</div>
-</div>
-
-<div class="summary-card year-card">
-<div id="yLabel">YEAR</div>
-<div id="yTotal">₹0</div>
-</div>
+<div class="summary">
+<div class="box m"><div id="mLabel"></div><div id="mTotal">₹0</div></div>
+<div class="box y"><div id="yLabel"></div><div id="yTotal">₹0</div></div>
 </div>
 
 <div class="card">
@@ -64,64 +58,71 @@ font-weight:800;border-bottom:2px solid #eee;padding-bottom:5px}
 </div>
 
 <div class="input-row">
-<button onclick="doSave()" class="save-btn">SAVE</button>
+<button onclick="save()" id="saveBtn" class="save">SAVE</button>
 </div>
 </div>
 
-<div class="analysis-zone">
-<div class="charts-grid">
-<div class="chart-wrap"><canvas id="mChart"></canvas></div>
-<div class="chart-wrap"><canvas id="yChart"></canvas></div>
+<div class="analysis">
+<div class="grid">
+<div class="chart"><canvas id="mChart"></canvas></div>
+<div class="chart"><canvas id="yChart"></canvas></div>
 </div>
 </div>
 
 <div class="card">
 <div class="history-title">
 <span>History (<span id="filterName">All</span>)</span>
-<span onclick="doExcel()">DOWNLOAD</span>
+<span onclick="downloadCSV()">DOWNLOAD</span>
 </div>
-<table class="history-table">
-<tbody id="tableBody"></tbody>
+<table width="100%">
+<tbody id="tbody"></tbody>
 </table>
 </div>
 
 <script>
 
 const KEY="khata_pro_v14_final";
+
 let data=JSON.parse(localStorage.getItem(KEY))||[];
-
 let selectedCategory="All";
-let mc,yc,editIdx=-1;
+let editIndex=-1;
 
-window.onload=()=>{initCharts();refresh();};
+let mc,yc;
+
+window.onload=()=>{
+initCharts();
+refresh();
+};
 
 function initCharts(){
 
 const opt={
 plugins:{legend:{display:false}},
-cutout:'75%',
+cutout:'70%',
 onClick:(evt,el,chart)=>{
 if(el.length){
 selectedCategory=chart.data.labels[el[0].index];
-}else{
-selectedCategory="All";
-}
+}else selectedCategory="All";
 refresh();
 }
 };
 
-mc=new Chart(mChart,{type:'doughnut',
+mc=new Chart(mChart,{
+type:'doughnut',
 data:{labels:[],datasets:[{data:[],
 backgroundColor:['#4285F4','#34A853','#FBBC05','#EA4335','#8E44AD']}]},
-options:opt});
+options:opt
+});
 
-yc=new Chart(yChart,{type:'doughnut',
+yc=new Chart(yChart,{
+type:'doughnut',
 data:{labels:[],datasets:[{data:[],
 backgroundColor:['#4285F4','#34A853','#FBBC05','#EA4335','#8E44AD']}]},
-options:opt});
+options:opt
+});
 }
 
-function doSave(){
+function save(){
 
 const d=desc.value;
 const a=parseFloat(amt.value);
@@ -139,21 +140,26 @@ yr:now.getFullYear(),
 d,a,c
 };
 
-if(editIdx==-1)data.push(entry);
-else data[editIdx]=entry;
+if(editIndex===-1)
+data.push(entry);
+else{
+data[editIndex]=entry;
+editIndex=-1;
+saveBtn.innerText="SAVE";
+}
 
 localStorage.setItem(KEY,JSON.stringify(data));
 
 desc.value="";
 amt.value="";
+cat.value="";
 
 refresh();
 }
 
 function refresh(){
 
-const body=tableBody;
-body.innerHTML="";
+tbody.innerHTML="";
 
 let ms=0,ys=0,mg={},yg={};
 const now=new Date();
@@ -163,20 +169,22 @@ selectedCategory==="All"
 ?data
 :data.filter(x=>x.c===selectedCategory);
 
-filtered.slice().reverse().forEach((item,i)=>{
+filtered.slice().reverse().forEach(item=>{
 
-body.innerHTML+=`
+const realIndex=data.indexOf(item);
+
+tbody.innerHTML+=`
 <tr>
 <td>
 <b>${item.d}</b><br>
-${item.date} | ${item.c}
-<br>
-<button class="b-act" onclick="doDel(${data.indexOf(item)})">Del</button>
+${item.date} | ${item.c}<br>
+<button class="act" onclick="edit(${realIndex})">Edit</button>
+<button class="act del" onclick="del(${realIndex})">Del</button>
 </td>
-<td class="item-a">₹${item.a}</td>
+<td class="amt">₹${item.a}</td>
 </tr>`;
 
-if(item.yr===now.getFullYear()){
+if(item.yr===now.getFullYear){
 ys+=item.a;
 yg[item.c]=(yg[item.c]||0)+item.a;
 
@@ -189,7 +197,6 @@ mg[item.c]=(mg[item.c]||0)+item.a;
 
 mTotal.innerText="₹"+ms;
 yTotal.innerText="₹"+ys;
-
 filterName.innerText=selectedCategory;
 
 updateChart(mc,mg);
@@ -202,15 +209,25 @@ c.data.datasets[0].data=Object.values(d);
 c.update();
 }
 
-function doDel(i){
-if(confirm("Delete?")){
+function edit(i){
+const r=data[i];
+desc.value=r.d;
+amt.value=r.a;
+cat.value=r.c;
+editIndex=i;
+saveBtn.innerText="UPDATE";
+window.scrollTo(0,0);
+}
+
+function del(i){
+if(confirm("Delete entry?")){
 data.splice(i,1);
 localStorage.setItem(KEY,JSON.stringify(data));
 refresh();
 }
 }
 
-function doExcel(){
+function downloadCSV(){
 
 const filtered=
 selectedCategory==="All"
@@ -227,6 +244,7 @@ const blob=new Blob([csv]);
 const a=document.createElement("a");
 
 a.href=URL.createObjectURL(blob);
+
 a.download=
 selectedCategory==="All"
 ?"KhataPro_All.csv"
